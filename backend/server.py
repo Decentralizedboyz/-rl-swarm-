@@ -1,12 +1,8 @@
 import sys
 import os
 from pathlib import Path
-
-# Add the project root to Python path
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +20,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
+# Get the absolute path to the frontend directory
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+
+# Mount static files
+app.mount("/assets", StaticFiles(directory=os.path.join(frontend_path, "assets")), name="assets")
+
+# Serve the main HTML file
+@app.get("/")
+async def read_root():
+    return FileResponse(os.path.join(frontend_path, "index.html"))
 
 # CORS middleware
 app.add_middleware(
